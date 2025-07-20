@@ -71,7 +71,7 @@ const TemperatureBarChart = ({ language }) => {
         });
       }
     });
-  }, [language]); // reload if language changes
+  }, [language]);
 
   const options = {
     responsive: true,

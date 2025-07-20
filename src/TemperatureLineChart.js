@@ -40,26 +40,85 @@ const TemperatureLineChart = ( {language} ) => {
 
     const [viewMode, setViewMode] = useState('monthly');
     const [monthFilter, setMonthFilter] = useState(1); // 1 = Jan
-    const [data, csvData, setData] = useState(null);
+    const [data, setData] = useState(null);
     const [dailyRaw, setDailyRaw] = useState([]);
 
     useEffect(() => {
-    Papa.parse('/temperature_data_2024.csv', {
-        download: true,
-        header: true,
-        dynamicTyping: true,
-        complete: (result) => {
-        const rows = result.data.filter(row =>
-            !isNaN(row.max_temp) &&
-            !isNaN(row.min_temp) &&
-            row.Month >= 1 && row.Month <= 12
-        );
-
-        setDailyRaw(rows);
-        updateChartData(rows, viewMode, monthFilter);
-        }
-    });
-    }, [csvData, monthFilter, viewMode]);
+        const updateChartData = (rows, mode, filterMonth) => {
+          if (mode === 'monthly') {
+            const monthlyMax = Array(12).fill(-Infinity);
+            const monthlyMin = Array(12).fill(Infinity);
+      
+            rows.forEach(row => {
+              const monthIndex = row.Month - 1;
+              monthlyMax[monthIndex] = Math.max(monthlyMax[monthIndex], row.max_temp);
+              monthlyMin[monthIndex] = Math.min(monthlyMin[monthIndex], row.min_temp);
+            });
+      
+            setData({
+              labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+              datasets: [
+                {
+                  label: 'Max Temp (°C)',
+                  data: monthlyMax,
+                  borderColor: 'rgba(255, 99, 132, 1)',
+                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                  tension: 0.4
+                },
+                {
+                  label: 'Min Temp (°C)',
+                  data: monthlyMin,
+                  borderColor: 'rgba(54, 162, 235, 1)',
+                  backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                  tension: 0.4
+                }
+              ]
+            });
+          } else if (mode === 'daily') {
+            const filtered = rows.filter(r => r.Month === filterMonth);
+            const labels = filtered.map(r => `${r.Month}/${r.Day}`);
+            const max = filtered.map(r => r.max_temp);
+            const min = filtered.map(r => r.min_temp);
+      
+            setData({
+              labels,
+              datasets: [
+                {
+                  label: 'Max Temp (°C)',
+                  data: max,
+                  borderColor: 'rgba(255, 99, 132, 1)',
+                  backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                  tension: 0.3
+                },
+                {
+                  label: 'Min Temp (°C)',
+                  data: min,
+                  borderColor: 'rgba(54, 162, 235, 1)',
+                  backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                  tension: 0.3
+                }
+              ]
+            });
+          }
+        };
+      
+        Papa.parse('/temperature_data_2024.csv', {
+          download: true,
+          header: true,
+          dynamicTyping: true,
+          complete: (result) => {
+            const rows = result.data.filter(row =>
+              !isNaN(row.max_temp) &&
+              !isNaN(row.min_temp) &&
+              row.Month >= 1 && row.Month <= 12
+            );
+      
+            setDailyRaw(rows);
+            updateChartData(rows, viewMode, monthFilter);
+          }
+        });
+      }, [monthFilter, viewMode]);      
 
     const updateChartData = (rows, mode, filterMonth) => {
     if (mode === 'monthly') {

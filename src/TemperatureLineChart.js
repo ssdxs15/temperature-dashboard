@@ -40,7 +40,7 @@ const TemperatureLineChart = ( {language} ) => {
 
     const [viewMode, setViewMode] = useState('monthly');
     const [monthFilter, setMonthFilter] = useState(1); // 1 = Jan
-    const [data, setData] = useState(null);
+    const [data, csvData, setData] = useState(null);
     const [dailyRaw, setDailyRaw] = useState([]);
 
     useEffect(() => {

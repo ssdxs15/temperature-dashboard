@@ -59,7 +59,7 @@ const TemperatureLineChart = ( {language} ) => {
         updateChartData(rows, viewMode, monthFilter);
         }
     });
-    }, []);
+    }, [csvData, monthFilter, viewMode]);
 
     const updateChartData = (rows, mode, filterMonth) => {
     if (mode === 'monthly') {
